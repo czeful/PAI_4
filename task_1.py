@@ -1,6 +1,4 @@
-# iris_classification.py
-# Полный цикл: загрузка -> split -> обучение -> метрики -> графики -> таблица результатов
-import time
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -17,14 +15,13 @@ from sklearn.metrics import (
 )
 import os
 
-# ---------- Настройки ----------
 RANDOM_STATE = 42
 TEST_SIZE = 0.2
-USE_GRIDSEARCH = False  # <-- Поставьте True если хотите лёгкий GridSearch (увеличит время)
+USE_GRIDSEARCH = False  
 OUT_DIR = "iris_results"
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# ---------- 1. Загрузка и первичный анализ ----------
+
 iris = load_iris()
 X, y = iris.data, iris.target
 feature_names = iris.feature_names
@@ -36,7 +33,6 @@ print("features:", feature_names)
 print("classes:", target_names)
 print("class balance:", np.bincount(y))
 
-# ---------- 2. Разбиение выборки ----------
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=TEST_SIZE, stratify=y, random_state=RANDOM_STATE
 )
@@ -47,7 +43,7 @@ pipe_dt = Pipeline([("clf", DecisionTreeClassifier(random_state=RANDOM_STATE))])
 pipe_lr = Pipeline([("scaler", StandardScaler()), ("clf", LogisticRegression(max_iter=1000, random_state=RANDOM_STATE))])
 pipe_knn = Pipeline([("scaler", StandardScaler()), ("clf", KNeighborsClassifier())])
 
-# ---------- 4. (Опционально) GridSearch (легкий) ----------
+# ---------- 4. (Опционально) GridSearch 
 if USE_GRIDSEARCH:
     print("Running light GridSearch (5-fold)...")
     param_grid_dt = {"clf__max_depth": [2,3,4,None], "clf__min_samples_split":[2,4,6]}
@@ -70,12 +66,12 @@ if USE_GRIDSEARCH:
     clf_lr = gs_lr.best_estimator_
     clf_knn = gs_knn.best_estimator_
 else:
-    # Зафиксируем разумные дефолты (быстро и детерминировано)
+    # Зафиксируем разумные дефолты
     clf_dt = Pipeline([("clf", DecisionTreeClassifier(max_depth=3, random_state=RANDOM_STATE))])
     clf_lr = Pipeline([("scaler", StandardScaler()), ("clf", LogisticRegression(C=1.0, max_iter=1000, random_state=RANDOM_STATE))])
     clf_knn = Pipeline([("scaler", StandardScaler()), ("clf", KNeighborsClassifier(n_neighbors=5))])
 
-# ---------- 5. Обучение финальных моделей (и измерение времени) ----------
+# ---------- 5. Обучение финальных моделей 
 models = {
     "Decision Tree": clf_dt,
     "Logistic Regression": clf_lr,
@@ -97,7 +93,7 @@ for name, model in models.items():
     predict_time = time.time() - t0
     timings[name]["predict_time"] = predict_time
 
-    # Получаем вероятности для ROC
+   
     if hasattr(model, "predict_proba"):
         y_score = model.predict_proba(X_test)
     elif hasattr(model, "decision_function"):
